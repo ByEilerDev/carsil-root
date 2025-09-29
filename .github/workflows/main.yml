@@ -1,0 +1,38 @@
+name: Coverage
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Run tests with JaCoCo
+        run: mvn clean verify
+
+      - name: Install jacoco2lcov
+        run: npm install -g jacoco2lcov
+
+      - name: Convert JaCoCo XML to LCOV
+        run: jacoco2lcov convert target/site/jacoco/jacoco.xml lcov.info
+
+      - name: Upload Coverage to Barecheck
+        uses: barecheck/code-coverage-action@v1
+        with:
+          barecheck-github-app-token: ${{ secrets.BARECHECK_GITHUB_APP_TOKEN }}
+          lcov-file: "lcov.info"
+          send-summary-comment: true
+          show-annotations: "warning"
