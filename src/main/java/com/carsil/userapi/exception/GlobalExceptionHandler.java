@@ -116,7 +116,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         var body = ApiError.builder()
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message("Credenciales inválidas")
+                .message(ex.getMessage())
                 .developerMessage(ex.getMessage())
                 .path(req.getRequestURI())
                 .build();
