@@ -5,12 +5,14 @@ import com.carsil.userapi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
@@ -24,8 +26,6 @@ class UserServiceTest {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         userService = new UserService();
-        // Inyectamos los mocks vía reflexión por simplicidad (tu servicio usa @Autowired)
-        // Alternativa: constructor + @RequiredArgsConstructor en producción.
         try {
             var repoField = UserService.class.getDeclaredField("userRepository");
             repoField.setAccessible(true);
@@ -69,6 +69,7 @@ class UserServiceTest {
 
     @Test
     void delete_callsRepository() {
+        when(userRepository.existsById(10L)).thenReturn(true);
         userService.delete(10L);
         verify(userRepository).deleteById(10L);
     }
@@ -82,22 +83,46 @@ class UserServiceTest {
         when(userRepository.findByName("luis")).thenReturn(Optional.of(u));
         when(passwordEncoder.matches("secret", "HASH")).thenReturn(true);
 
-        boolean ok = userService.validateLogin("luis", "secret");
-        assertThat(ok).isTrue();
+        // Ya no devuelve un booleano, sino que se ejecuta sin lanzar excepción si es exitoso
+        userService.validateLogin("luis", "secret");
 
         verify(userRepository).findByName("luis");
     }
 
     @Test
-    void validateLogin_returnsFalse_whenUserMissingOrPasswordMismatch() {
+    void validateLogin_throwsBadCredentialsException_whenUserMissingOrPasswordMismatch() {
+        // 1. Usuario inexistente
         when(userRepository.findByName("nope")).thenReturn(Optional.empty());
-        assertThat(userService.validateLogin("nope", "x")).isFalse();
+        assertThatThrownBy(() ->
+                userService.validateLogin("nope", "x"))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessageContaining("Usuario no valido");
 
+        // 2. Contraseña no coincide
         User u = new User();
         u.setName("luis");
         u.setPassword("HASH");
         when(userRepository.findByName("luis")).thenReturn(Optional.of(u));
         when(passwordEncoder.matches("bad", "HASH")).thenReturn(false);
-        assertThat(userService.validateLogin("luis", "bad")).isFalse();
+
+        assertThatThrownBy(() ->
+                userService.validateLogin("luis", "bad"))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessageContaining("Contraseña incorrecta");
+    }
+
+    @Test
+    void validateLogin_throwsIllegalArgumentException_whenMissingData() {
+        // Nombre de usuario vacío
+        assertThatThrownBy(() ->
+                userService.validateLogin("", "secret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Usuario y contraseña son obligatorios");
+
+        // Contraseña vacía
+        assertThatThrownBy(() ->
+                userService.validateLogin("luis", ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Usuario y contraseña son obligatorios");
     }
 }

@@ -46,7 +46,7 @@ public class UserService {
             throw new IllegalArgumentException("Usuario y contraseña son obligatorios");
         }
         var user = userRepository.findByName(name)
-                .orElseThrow(() -> new BadCredentialsException("Usuario no valido "));
+                .orElseThrow(() -> new BadCredentialsException("Usuario no valido"));
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new BadCredentialsException("Contraseña incorrecta");
