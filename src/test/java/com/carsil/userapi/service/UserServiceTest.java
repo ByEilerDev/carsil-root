@@ -5,12 +5,16 @@ import com.carsil.userapi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.NoSuchElementException;
+import java.lang.IllegalArgumentException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
@@ -24,8 +28,6 @@ class UserServiceTest {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         userService = new UserService();
-        // Inyectamos los mocks vía reflexión por simplicidad (tu servicio usa @Autowired)
-        // Alternativa: constructor + @RequiredArgsConstructor en producción.
         try {
             var repoField = UserService.class.getDeclaredField("userRepository");
             repoField.setAccessible(true);
@@ -40,14 +42,14 @@ class UserServiceTest {
     }
 
     @Test
-    void getAll_returnsAllUsers() {
+    void getAll_shouldReturnAllUsers() {
         when(userRepository.findAll()).thenReturn(Arrays.asList(new User(), new User()));
         assertThat(userService.getAll()).hasSize(2);
         verify(userRepository).findAll();
     }
 
     @Test
-    void create_encodesPassword_andSaves() {
+    void create_shouldEncodePasswordAndSaveUser() {
         User u = new User();
         u.setName("luis");
         u.setEmail("luis@test.com");
@@ -68,13 +70,14 @@ class UserServiceTest {
     }
 
     @Test
-    void delete_callsRepository() {
+    void delete_shouldCallDeleteById_whenUserExists() {
+        when(userRepository.existsById(10L)).thenReturn(true);
         userService.delete(10L);
         verify(userRepository).deleteById(10L);
     }
 
     @Test
-    void validateLogin_returnsTrue_whenPasswordMatches() {
+    void validateLogin_shouldNotThrowException_onValidCredentials() {
         User u = new User();
         u.setName("luis");
         u.setPassword("HASH");
@@ -82,22 +85,47 @@ class UserServiceTest {
         when(userRepository.findByName("luis")).thenReturn(Optional.of(u));
         when(passwordEncoder.matches("secret", "HASH")).thenReturn(true);
 
-        boolean ok = userService.validateLogin("luis", "secret");
-        assertThat(ok).isTrue();
+        userService.validateLogin("luis", "secret");
 
         verify(userRepository).findByName("luis");
     }
 
     @Test
-    void validateLogin_returnsFalse_whenUserMissingOrPasswordMismatch() {
+    void validateLogin_shouldThrowBadCredentialsException_whenUserNotFound() {
         when(userRepository.findByName("nope")).thenReturn(Optional.empty());
-        assertThat(userService.validateLogin("nope", "x")).isFalse();
+        assertThatThrownBy(() ->
+                userService.validateLogin("nope", "x"))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessageContaining("Usuario no valido");
+    }
 
+    @Test
+    void validateLogin_shouldThrowBadCredentialsException_whenPasswordMismatch() {
         User u = new User();
         u.setName("luis");
         u.setPassword("HASH");
         when(userRepository.findByName("luis")).thenReturn(Optional.of(u));
         when(passwordEncoder.matches("bad", "HASH")).thenReturn(false);
-        assertThat(userService.validateLogin("luis", "bad")).isFalse();
+
+        assertThatThrownBy(() ->
+                userService.validateLogin("luis", "bad"))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessageContaining("Contraseña incorrecta");
+    }
+
+    @Test
+    void validateLogin_shouldThrowIllegalArgumentException_whenUsernameIsMissing() {
+        assertThatThrownBy(() ->
+                userService.validateLogin("", "secret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Usuario y contraseña son obligatorios");
+    }
+
+    @Test
+    void validateLogin_shouldThrowIllegalArgumentException_whenPasswordIsMissing() {
+        assertThatThrownBy(() ->
+                userService.validateLogin("luis", ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Usuario y contraseña son obligatorios");
     }
 }
