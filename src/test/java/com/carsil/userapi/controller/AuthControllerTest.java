@@ -29,11 +29,7 @@ class AuthControllerTest {
 
 
     @Test
-    void login_returns200_whenValid() throws Exception {
-        // En el caso de éxito, el servicio no lanza excepción (implícitamente devuelve void/true si fuera booleano)
-        // No es necesario simular un retorno si el método solo valida y lanza excepción al fallar.
-        // El test original no fallaba, lo dejamos igual para éxito.
-
+    void login_returns200_onValidCredentials() throws Exception {
         mvc.perform(post("/api/auth/login")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -43,8 +39,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_returns401_whenInvalidCredentials() throws Exception {
-        // Simular que el servicio lanza BadCredentialsException
+    void login_returns401_whenBadCredentialsExceptionIsThrown() throws Exception {
         Mockito.doThrow(new BadCredentialsException("Contraseña incorrecta"))
                 .when(userService).validateLogin("luis", "bad");
 
@@ -52,13 +47,11 @@ class AuthControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userName\":\"luis\",\"password\":\"bad\"}"))
-                // Spring Security/MVC mapea BadCredentialsException a 401 Unauthorized por defecto
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void login_returns400_whenMissingData() throws Exception {
-        // Simular que el servicio lanza IllegalArgumentException si faltan datos
+    void login_returns400_whenIllegalArgumentExceptionIsThrown() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("Usuario y contraseña son obligatorios"))
                 .when(userService).validateLogin("", "secret");
 
@@ -66,7 +59,6 @@ class AuthControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userName\":\"\",\"password\":\"secret\"}"))
-                // Spring MVC mapea IllegalArgumentException a 400 Bad Request por defecto
                 .andExpect(status().isBadRequest());
     }
 }

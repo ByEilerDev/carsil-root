@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.NoSuchElementException;
+import java.lang.IllegalArgumentException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,14 +42,14 @@ class UserServiceTest {
     }
 
     @Test
-    void getAll_returnsAllUsers() {
+    void getAll_shouldReturnAllUsers() {
         when(userRepository.findAll()).thenReturn(Arrays.asList(new User(), new User()));
         assertThat(userService.getAll()).hasSize(2);
         verify(userRepository).findAll();
     }
 
     @Test
-    void create_encodesPassword_andSaves() {
+    void create_shouldEncodePasswordAndSaveUser() {
         User u = new User();
         u.setName("luis");
         u.setEmail("luis@test.com");
@@ -68,14 +70,14 @@ class UserServiceTest {
     }
 
     @Test
-    void delete_callsRepository() {
+    void delete_shouldCallDeleteById_whenUserExists() {
         when(userRepository.existsById(10L)).thenReturn(true);
         userService.delete(10L);
         verify(userRepository).deleteById(10L);
     }
 
     @Test
-    void validateLogin_returnsTrue_whenPasswordMatches() {
+    void validateLogin_shouldNotThrowException_onValidCredentials() {
         User u = new User();
         u.setName("luis");
         u.setPassword("HASH");
@@ -83,22 +85,22 @@ class UserServiceTest {
         when(userRepository.findByName("luis")).thenReturn(Optional.of(u));
         when(passwordEncoder.matches("secret", "HASH")).thenReturn(true);
 
-        // Ya no devuelve un booleano, sino que se ejecuta sin lanzar excepción si es exitoso
         userService.validateLogin("luis", "secret");
 
         verify(userRepository).findByName("luis");
     }
 
     @Test
-    void validateLogin_throwsBadCredentialsException_whenUserMissingOrPasswordMismatch() {
-        // 1. Usuario inexistente
+    void validateLogin_shouldThrowBadCredentialsException_whenUserNotFound() {
         when(userRepository.findByName("nope")).thenReturn(Optional.empty());
         assertThatThrownBy(() ->
                 userService.validateLogin("nope", "x"))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessageContaining("Usuario no valido");
+    }
 
-        // 2. Contraseña no coincide
+    @Test
+    void validateLogin_shouldThrowBadCredentialsException_whenPasswordMismatch() {
         User u = new User();
         u.setName("luis");
         u.setPassword("HASH");
@@ -112,14 +114,15 @@ class UserServiceTest {
     }
 
     @Test
-    void validateLogin_throwsIllegalArgumentException_whenMissingData() {
-        // Nombre de usuario vacío
+    void validateLogin_shouldThrowIllegalArgumentException_whenUsernameIsMissing() {
         assertThatThrownBy(() ->
                 userService.validateLogin("", "secret"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Usuario y contraseña son obligatorios");
+    }
 
-        // Contraseña vacía
+    @Test
+    void validateLogin_shouldThrowIllegalArgumentException_whenPasswordIsMissing() {
         assertThatThrownBy(() ->
                 userService.validateLogin("luis", ""))
                 .isInstanceOf(IllegalArgumentException.class)
