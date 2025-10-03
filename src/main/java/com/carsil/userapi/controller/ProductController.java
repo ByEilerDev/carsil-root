@@ -51,7 +51,7 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/by-module/{op}")
+    @GetMapping("/by-op/{op}")
     public ResponseEntity<List<Product>> getProductByOp(@PathVariable String op) {
         List<Product> products = productService.getProductsByOp(op);
         if (products.isEmpty()) {
