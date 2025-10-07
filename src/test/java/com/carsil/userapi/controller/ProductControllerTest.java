@@ -1,6 +1,7 @@
 package com.carsil.userapi.controller;
 
 import com.carsil.userapi.model.Product;
+import com.carsil.userapi.model.enums.Brand;
 import com.carsil.userapi.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +75,7 @@ class ProductControllerTest {
         productToSave.setPrice(BigDecimal.valueOf(100.0));
         productToSave.setAssignedDate(LocalDate.now());
         productToSave.setPlantEntryDate(LocalDate.now());
-        productToSave.setBrand("BrandX");
+        productToSave.setBrand(Brand.BLANK);
         productToSave.setOp("OP123");
         productToSave.setCampaign("CAMP1");
         productToSave.setType("TypeA");
@@ -102,7 +103,7 @@ class ProductControllerTest {
         productToUpdate.setPrice(BigDecimal.valueOf(250.0));
         productToUpdate.setAssignedDate(LocalDate.now());
         productToUpdate.setPlantEntryDate(LocalDate.now());
-        productToUpdate.setBrand("BrandY");
+        productToUpdate.setBrand(Brand.BLANK);
         productToUpdate.setOp("OP456");
         productToUpdate.setCampaign("CAMP2");
         productToUpdate.setType("TypeB");
@@ -135,8 +136,8 @@ class ProductControllerTest {
     void searchProducts_returnsMultipleMatches_whenQueryAppearsInDifferentFields() throws Exception {
         Product p1 = new Product();
         p1.setId(301L);
-        p1.setReference("NIKE-REF");
-        p1.setBrand("BrandX");
+        p1.setReference("LINEA");
+        p1.setBrand(Brand.BLANK);
         p1.setOp("OP123");
         p1.setCampaign("CAMP1");
         p1.setAssignedDate(LocalDate.now());
@@ -148,7 +149,7 @@ class ProductControllerTest {
         Product p2 = new Product();
         p2.setId(302L);
         p2.setReference("REF999");
-        p2.setBrand("Nike");
+        p2.setBrand(Brand.ELEDE);
         p2.setOp("OP999");
         p2.setCampaign("CAMP2");
         p2.setAssignedDate(LocalDate.now());
@@ -157,16 +158,16 @@ class ProductControllerTest {
         p2.setQuantity(10);
         p2.setType("TypeB");
 
-        Mockito.when(productService.search("nike")).thenReturn(List.of(p1, p2));
+        Mockito.when(productService.search("linea")).thenReturn(List.of(p1, p2));
 
         mvc.perform(get("/api/products/search")
-                        .param("q", "nike"))
+                        .param("q", "linea"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(301)))
-                .andExpect(jsonPath("$[0].reference", is("NIKE-REF")))
+                .andExpect(jsonPath("$[0].reference", is("LINEA")))
                 .andExpect(jsonPath("$[1].id", is(302)))
-                .andExpect(jsonPath("$[1].brand", is("Nike")));
+                .andExpect(jsonPath("$[1].brand", is("LINEA DIRECTA")));
     }
 
     @Test
