@@ -1,5 +1,6 @@
 package com.carsil.userapi.model;
 
+import com.carsil.userapi.model.enums.Brand;
 import com.carsil.userapi.model.enums.ProductionStatus;
 import com.carsil.userapi.model.enums.StoppageReason;
 import jakarta.persistence.*;
@@ -55,9 +56,9 @@ public class Product {
     private String reference;
 
     @NotNull
-    @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$", message = "The brand must contain only letters.")
-    @Column(nullable = false)
-    private String brand;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private Brand brand = Brand.BLANK;
 
     @NotNull
     @Pattern(regexp = "^[0-9]*$", message = "The OP field must contain only numbers.")
