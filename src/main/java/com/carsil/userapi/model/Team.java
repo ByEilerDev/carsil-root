@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
-@Table(name = "carsil_modules")
+@Table(name = "carsil_team")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,7 +16,7 @@ import lombok.*;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Module {
+public class Team {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +26,7 @@ public class Module {
     @Size(max = 255, message = "The description cannot exceed 255 characters.")
     private String description;
 
-    @NotNull(message = "Module name cannot be null.")
+    @NotNull(message = "Team name cannot be null.")
     @Size(min = 2, max = 100, message = "The name must have between 2 and 100 characters.")
     @Column(nullable = false)
     private String name;
@@ -36,8 +36,8 @@ public class Module {
 
     private java.math.BigDecimal loadDays;
 
-    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"module"})
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"team"})
     private java.util.List<Product> products = new java.util.ArrayList<>();
 
     @Transient

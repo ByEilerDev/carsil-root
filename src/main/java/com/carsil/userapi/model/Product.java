@@ -85,9 +85,9 @@ public class Product {
     private Map<String, Integer> sizeQuantities = new HashMap<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "module_id")
+    @JoinColumn(name = "team_id")
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"products"})
-    private Module module;
+    private Team team;
 
     @PrePersist
     private void validateOnCreate() {
@@ -202,7 +202,7 @@ public class Product {
     @Transient
     public BigDecimal getLoadDays() {
         Integer samTotalMin = this.samTotal;
-        Integer people = (module != null ? module.getNumPersons() : null);
+        Integer people = (team != null ? team.getNumPersons() : null);
 
         if (samTotalMin == null || samTotalMin <= 0) return BigDecimal.ZERO;
         if (people == null || people <= 0) return BigDecimal.ZERO;

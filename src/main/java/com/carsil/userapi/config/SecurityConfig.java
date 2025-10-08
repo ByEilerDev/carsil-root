@@ -30,7 +30,7 @@ public class SecurityConfig {
                                 "/api/users",
                                 "/api/users/**",
                                 "/api/auth/login",
-                                "/api/modules/**",
+                                "/api/teams/**",
                                 "/h2-console/**",
                                 "/api/products/**").permitAll()
                         .anyRequest().authenticated()
