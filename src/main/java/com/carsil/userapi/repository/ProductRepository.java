@@ -29,7 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByPlantEntryDateBetween(LocalDate startDate, LocalDate endDate);
 
-    List<Product> findByTeamId(Long teamId);
+    List<Product> findByModuleId(Long moduleId);
 
     List<Product> findByOp(String op);
 }

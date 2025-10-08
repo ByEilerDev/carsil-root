@@ -1,9 +1,9 @@
 package com.carsil.userapi.service;
 
-import com.carsil.userapi.model.Team;
+import com.carsil.userapi.model.Module;
 import com.carsil.userapi.model.Product;
 import com.carsil.userapi.model.enums.ProductionStatus;
-import com.carsil.userapi.repository.TeamRepository;
+import com.carsil.userapi.repository.ModuleRepository;
 import com.carsil.userapi.repository.ProductRepository;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,7 @@ public class ProductService {
     private ProductRepository productRepository;
 
     @Autowired
-    private TeamRepository teamRepository;
+    private ModuleRepository moduleRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -32,9 +32,11 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    private static final Set<String> IMMUTABLE_FIELDS = Set.of("id");
+    private static final Set<String> IMMUTABLE_FIELDS = Set.of(
+            "id"
+    );
 
-    private static final String TEAM_ID = "TeamId";
+    private static final String MODULE_ID_KEY = "moduleId";
 
     @Transactional
     public void delete(Long id) {
@@ -49,10 +51,10 @@ public class ProductService {
         if (p.getQuantityMade() == null) p.setQuantityMade(0);
         if (p.getQuantity() == null)
             throw new IllegalArgumentException("quantity is required");
-        if(p.getTeam() != null){
-            var m = teamRepository.findById(p.getTeam().getId()).get();
+        if(p.getModule() != null){
+            var m = moduleRepository.findById(p.getModule().getId()).get();
             m.setLoadDays(p.getLoadDays());
-            teamRepository.save(m);
+            moduleRepository.save(m);
         }
          recalcDerived(p);
         return productRepository.save(p);
@@ -77,7 +79,7 @@ public class ProductService {
         if (patch.getStatus() != null) existing.setStatus(patch.getStatus());
         if (patch.getStoppageReason() != null) existing.setStoppageReason(patch.getStoppageReason());
         if (patch.getActualDeliveryDate() != null) existing.setActualDeliveryDate(patch.getActualDeliveryDate());
-        if (patch.getTeam() != null) existing.setTeam(patch.getTeam());
+        if (patch.getModule() != null) existing.setModule(patch.getModule());
         if (patch.getOp() != null && !patch.getOp().equals(existing.getOp())
                 && productRepository.existsByOpAndIdNot(patch.getOp(), id)) {
             throw new org.springframework.dao.DuplicateKeyException("op already exists: " + patch.getOp());
@@ -107,8 +109,8 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> getProductsByTeam(Long teamId) {
-        return productRepository.findByTeamId(teamId);
+    public List<Product> getProductsByModule(Long moduleId) {
+        return productRepository.findByModuleId(moduleId);
     }
 
     @Transactional(readOnly = true)
@@ -143,10 +145,10 @@ public class ProductService {
         }
         // status default si faltó
         if (p.getStatus() == null) p.setStatus(ProductionStatus.PROCESO);
-        if(p.getTeam() != null){
-            Team m = teamRepository.findById(p.getTeam().getId()).get();
+        if(p.getModule() != null){
+            Module m = moduleRepository.findById(p.getModule().getId()).get();
             m.setLoadDays(p.getLoadDays());
-            teamRepository.save(m);
+            moduleRepository.save(m);
         }
     }
 
@@ -175,15 +177,15 @@ public class ProductService {
         Map<String, Object> sanitized = new HashMap<>(updates);
         IMMUTABLE_FIELDS.forEach(sanitized::remove);
 
-        if (sanitized.containsKey(TEAM_ID)) {
-            Object raw = sanitized.remove(TEAM_ID);
+        if (sanitized.containsKey(MODULE_ID_KEY)) {
+            Object raw = sanitized.remove(MODULE_ID_KEY);
             if (raw != null) {
-                Long productId = toLong(raw);
-                Team team = teamRepository.findById(productId)
-                        .orElseThrow(() -> new IllegalArgumentException("Team not found: " + productId));
-                existing.setTeam(team);
+                Long moduleId = toLong(raw);
+                Module module = moduleRepository.findById(moduleId)
+                        .orElseThrow(() -> new IllegalArgumentException("Module not found: " + moduleId));
+                existing.setModule(module);
             } else {
-                existing.setTeam(null);
+                existing.setModule(null);
             }
         }
         try {

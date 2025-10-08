@@ -60,9 +60,9 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/by-team/{teamId}")
-    public ResponseEntity<List<Product>> getProductsByTeam(@PathVariable Long teamId) {
-        List<Product> products = productService.getProductsByTeam(teamId);
+    @GetMapping("/by-module/{moduleId}")
+    public ResponseEntity<List<Product>> getProductsByModule(@PathVariable Long moduleId) {
+        List<Product> products = productService.getProductsByModule(moduleId);
         if (products.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

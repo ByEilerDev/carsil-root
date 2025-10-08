@@ -1,7 +1,26 @@
 package com.carsil.userapi.service;
 
+import com.carsil.userapi.model.Module;
+import com.carsil.userapi.model.Product;
+import com.carsil.userapi.repository.ModuleRepository;
+import com.carsil.userapi.repository.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -10,7 +29,7 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
-    private TeamRepository moduleRepo;
+    private ModuleRepository moduleRepo;
 
     @InjectMocks
     private ProductService productService;
@@ -86,7 +105,7 @@ class ProductServiceTest {
         updatedData.setReference("UPDATED_REF");
         updatedData.setPrice(99.99);
         updatedData.setOp(testProduct.getOp());
-        updatedData.setTeam(null);
+        updatedData.setModule(null);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(updatedData);
@@ -175,7 +194,7 @@ class ProductServiceTest {
         verify(productRepository, times(1)).findById(99L);
     }
 
-    // --- Nuevas pruebas para sizeQuantities y team ---
+    // --- Nuevas pruebas para sizeQuantities y module ---
 
     @Test
     void create_withSizeQuantities_returnsSavedProductAndCorrectQuantity() {
@@ -243,11 +262,11 @@ class ProductServiceTest {
     void create_withExistingModule_returnsSavedProduct() {
         // Arrange
         Long moduleId = 10L;
-        Team mockModule = new Team();
+        Module mockModule = new Module();
         mockModule.setId(moduleId);
 
         Product productWithModule = new Product();
-        productWithModule.setTeam(mockModule);
+        productWithModule.setModule(mockModule);
         productWithModule.setPrice(50.0);
         productWithModule.setAssignedDate(LocalDate.now());
         productWithModule.setPlantEntryDate(LocalDate.now());
@@ -266,8 +285,8 @@ class ProductServiceTest {
 
         // Assert
         assertNotNull(createdProduct);
-        assertNotNull(createdProduct.getTeam());
-        assertEquals(moduleId, createdProduct.getTeam().getId());
+        assertNotNull(createdProduct.getModule());
+        assertEquals(moduleId, createdProduct.getModule().getId());
         verify(moduleRepo, times(1)).findById(moduleId);
         verify(productRepository, times(1)).save(any(Product.class));
     }
@@ -277,9 +296,9 @@ class ProductServiceTest {
         // Arrange
         Long nonExistentModuleId = 99L;
         Product productWithModule = new Product();
-        Team nonExistentModule = new Team();
+        Module nonExistentModule = new Module();
         nonExistentModule.setId(nonExistentModuleId);
-        productWithModule.setTeam(nonExistentModule);
+        productWithModule.setModule(nonExistentModule);
         productWithModule.setPrice(50.0);
         productWithModule.setAssignedDate(LocalDate.now());
         productWithModule.setPlantEntryDate(LocalDate.now());
@@ -300,11 +319,11 @@ class ProductServiceTest {
     void update_withModule_returnsUpdatedProduct() {
         // Arrange
         Long newModuleId = 20L;
-        Team newModule = new Team();
+        Module newModule = new Module();
         newModule.setId(newModuleId);
 
         Product updatedData = new Product();
-        updatedData.setTeam(newModule);
+        updatedData.setModule(newModule);
         updatedData.setReference("UPDATED_REF");
         updatedData.setOp(testProduct.getOp());
 
@@ -317,8 +336,8 @@ class ProductServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertNotNull(result.getTeam());
-        assertEquals(newModuleId, result.getTeam().getId());
+        assertNotNull(result.getModule());
+        assertEquals(newModuleId, result.getModule().getId());
         verify(productRepository, times(1)).findById(1L);
         verify(moduleRepo, times(1)).findById(newModuleId);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -329,9 +348,9 @@ class ProductServiceTest {
         // Arrange
         Long nonExistentModuleId = 99L;
         Product updatedData = new Product();
-        Team nonExistentModule = new Team();
+        Module nonExistentModule = new Module();
         nonExistentModule.setId(nonExistentModuleId);
-        updatedData.setTeam(nonExistentModule);
+        updatedData.setModule(nonExistentModule);
         updatedData.setReference("UPDATED_REF");
         updatedData.setOp(testProduct.getOp());
 

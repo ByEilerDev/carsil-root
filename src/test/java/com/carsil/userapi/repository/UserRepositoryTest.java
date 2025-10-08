@@ -20,7 +20,7 @@ class UserRepositoryTest {
         User u = new User();
         u.setName("luis");
         u.setEmail("l@test.com");
-        u.setPassword("1234567");
+        u.setPassword("x");
         userRepository.save(u);
 
         Optional<User> found = userRepository.findByName("luis");
@@ -33,7 +33,7 @@ class UserRepositoryTest {
         User u = new User();
         u.setName("Luis");
         u.setEmail("l@test.com");
-        u.setPassword("123456");
+        u.setPassword("x");
         userRepository.save(u);
 
         Optional<User> found = userRepository.findByName("luis");
