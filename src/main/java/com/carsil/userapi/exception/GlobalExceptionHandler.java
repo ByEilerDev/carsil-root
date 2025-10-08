@@ -114,17 +114,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex, HttpServletRequest req) {
         var status = HttpStatus.UNAUTHORIZED;
 
-        String userMsg = ex.getMessage();
-
-        String devMsg = (ex.getCause() != null)
-                ? ex.getCause().getMessage()
-                : "Detalle no disponible o no especificado.";
-
         var body = ApiError.builder()
                 .status(status.value())
                 .error(status.getReasonPhrase())
-                .message(userMsg)
-                .developerMessage(devMsg)
+                .message(ex.getMessage())
+                .developerMessage((ex.getCause() != null) ? ex.getCause().getMessage() : ex.getMessage())
                 .path(req.getRequestURI())
                 .build();
         return ResponseEntity.status(status).body(body);
