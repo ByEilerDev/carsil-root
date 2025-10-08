@@ -1,27 +1,7 @@
 package com.carsil.userapi.service;
 
-import com.carsil.userapi.model.Module;
-import com.carsil.userapi.model.Product;
-import com.carsil.userapi.repository.ModuleRepository;
-import com.carsil.userapi.repository.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DuplicateKeyException;
-
-
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -30,7 +10,7 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
-    private ModuleRepository moduleRepo;
+    private TeamRepository moduleRepo;
 
     @InjectMocks
     private ProductService productService;
