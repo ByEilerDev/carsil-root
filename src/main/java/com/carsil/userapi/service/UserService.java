@@ -45,11 +45,20 @@ public class UserService {
         if (!StringUtils.hasText(name) || !StringUtils.hasText(rawPassword)) {
             throw new IllegalArgumentException("Usuario y contraseña son obligatorios");
         }
+
+        final String FRONT_MSG = "Usuario o contraseña inválidos";
+
         var user = userRepository.findByName(name)
-                .orElseThrow(() -> new BadCredentialsException("Usuario no valido"));
+                .orElseThrow(() -> new BadCredentialsException(
+                        FRONT_MSG,
+                        new RuntimeException("Usuario no valido")
+                ));
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new BadCredentialsException("Contraseña incorrecta");
+            throw new BadCredentialsException(
+                    FRONT_MSG,
+                    new RuntimeException("Contraseña incorrecta")
+            );
         }
         return true;
     }
@@ -65,4 +74,3 @@ public class UserService {
                 "No existe un usuario registrado con el nombre '" + name + "'.")));
     }
 }
-
