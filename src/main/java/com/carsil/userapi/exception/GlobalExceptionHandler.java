@@ -113,11 +113,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex, HttpServletRequest req) {
         var status = HttpStatus.UNAUTHORIZED;
+
         var body = ApiError.builder()
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(ex.getMessage())
-                .developerMessage(ex.getMessage())
+                .developerMessage((ex.getCause() != null) ? ex.getCause().getMessage() : ex.getMessage())
                 .path(req.getRequestURI())
                 .build();
         return ResponseEntity.status(status).body(body);
@@ -138,7 +139,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (request instanceof ServletWebRequest swr) {
             return swr.getRequest().getRequestURI();
         }
-        String desc = request.getDescription(false); // "uri=/api/..."
+        String desc = request.getDescription(false);
         return desc != null && desc.startsWith("uri=") ? desc.substring(4) : desc;
     }
 

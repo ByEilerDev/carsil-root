@@ -1,6 +1,7 @@
 package com.carsil.userapi.repository;
 
 import com.carsil.userapi.model.Product;
+import com.carsil.userapi.model.Team;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,7 +30,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByPlantEntryDateBetween(LocalDate startDate, LocalDate endDate);
 
-    List<Product> findByModuleId(Long moduleId);
+    List<Product> findByTeamId(Long teamId);
 
     List<Product> findByOp(String op);
 }
